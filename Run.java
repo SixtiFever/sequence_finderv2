@@ -9,7 +9,16 @@ public class Run {
 
         SequenceFinder sf = new SequenceFinder("text.txt");
 
-        sf.generateChars();
+
+        // generates new text document
+        if( args.length != 0 && args[0].equalsIgnoreCase("new")){
+            sf.generateChars();
+        } else {
+            sf.findSequence("word");
+        }
+
+
+       // sf.findSequence("word");
 
     }
 }
@@ -26,9 +35,52 @@ class SequenceFinder {
      * */
     SequenceFinder(String fname){
         this.fileName = fname;
-        if(checkFileConnection(fname)){
-            System.out.println("Connected.");
-            return;
+    }
+
+
+    /**
+     * searches the text document for the argument
+     * */
+    void findSequence(String sequence){  // sequence will be from Scanner item
+        char ch = sequence.charAt(0);
+        int i,j;
+
+        // used BufferedInputStream to enable mark/reset in situations of partial matching, and having to reset backwards by an offset x
+        try(BufferedInputStream fin = new BufferedInputStream(new FileInputStream(this.fileName)); RandomAccessFile raf = new RandomAccessFile(this.fileName, "rw")){
+            do {
+                i = (char) fin.read();
+
+                // if there is a match
+                if( (char)i == ch ){
+                    fin.mark(sequence.length());
+
+                    for( j = 0; j < sequence.length(); j++ ){
+                        ch = sequence.charAt(j);
+
+                        if( (char) i == ch) {
+
+                            if ( j == sequence.length() - 1 ){
+                                System.out.println("sequence found.");
+                                return;
+                            }
+
+                            i = (char) fin.read();
+
+                        } else {
+                            ch = sequence.charAt(0);
+                           fin.reset();  // reset to where
+                            break;
+                        }
+                    }
+                }
+
+                // if end of file is reached without finding a match
+                if ( i == (char)-1 ){
+                    System.out.println("End of file reached. Not found.");
+                }
+            } while ( i != (char)-1);
+        } catch (IOException e){
+            System.out.println(e);
         }
     }
 
@@ -40,26 +92,14 @@ class SequenceFinder {
         try(FileOutputStream fout = new FileOutputStream(this.fileName)){
             Random r = new Random();
             for( i = 0; i < TEXT_CHAR_COUNT; i++ ){
-                j = r.nextInt(34,126);
+                j = r.nextInt(33,126);
                 fout.write((char)j);
             }
         } catch (IOException e){
             System.out.println(e);
         }
-        return;
     }
 
 
-    /**
-     * checks that the file connects
-     * */
-    private boolean checkFileConnection(String fileName){
-        try(FileOutputStream fout = new FileOutputStream(fileName)){
-            return true;
-        } catch (IOException e){
-            System.out.println(e);
-            return false;
-        }
-    }
 
 }
