@@ -27,7 +27,9 @@ class SequenceFinder {
 
     String fileName;
     FileOutputStream fout;
+    int sequenceCount = 0;
     final int TEXT_CHAR_COUNT = 10000;
+    boolean foundOccurance = false;
 
     /**
      * sets fileName the instance will be connecting to.
@@ -46,9 +48,10 @@ class SequenceFinder {
         int i,j;
 
         // used BufferedInputStream to enable mark/reset in situations of partial matching, and having to reset backwards by an offset x
-        try(BufferedInputStream fin = new BufferedInputStream(new FileInputStream(this.fileName)); RandomAccessFile raf = new RandomAccessFile(this.fileName, "rw")){
+        try(BufferedInputStream fin = new BufferedInputStream(new FileInputStream(this.fileName))){
             do {
                 i = (char) fin.read();
+
 
                 // if there is a match
                 if( (char)i == ch ){
@@ -60,8 +63,10 @@ class SequenceFinder {
                         if( (char) i == ch) {
 
                             if ( j == sequence.length() - 1 ){
-                                System.out.println("sequence found.");
-                                return;
+                                System.out.println("sequence found. ");
+                                sequenceCount += 1;
+                                foundOccurance = true;
+                                break;
                             }
 
                             i = (char) fin.read();
@@ -75,13 +80,15 @@ class SequenceFinder {
                 }
 
                 // if end of file is reached without finding a match
-                if ( i == (char)-1 ){
-                    System.out.println("End of file reached. Not found.");
+                if ( !foundOccurance && i == (char) -1 ){
+                    System.out.println("End of file reached.");
                 }
+
             } while ( i != (char)-1);
         } catch (IOException e){
             System.out.println(e);
         }
+        System.out.println("Occurances found: " + sequenceCount);
     }
 
     /**
